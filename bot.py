@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 
 # ===== CONFIG =====
-TOKEN = os.getenv("TOKEN")  # ✅ FIX bảo mật
+TOKEN = os.getenv("TOKEN")
 ADMIN_ID = 8619503816
 GROUP_ID = -1003663678808
 GROUP_LINK = "https://t.me/thanhall"
@@ -94,7 +94,6 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     get_user(uid)
 
-    # ===== REF SYSTEM =====
     if ctx.args:
         try:
             ref = int(ctx.args[0])
@@ -140,7 +139,7 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"https://t.me/{BOT_USERNAME}?start={uid}")
 
     elif txt == "🛒 Rút tiền":
-        await update.message.reply_text("Dùng: /rut  30000")
+        await update.message.reply_text("Dùng: /rut bank stk ten 30000")
 
     elif txt == "📜 Lịch sử":
         cursor.execute("SELECT * FROM history WHERE user_id=? ORDER BY rowid DESC LIMIT 5", (uid,))
@@ -159,16 +158,19 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         del support_mode[uid]
         await update.message.reply_text("✅ Đã gửi")
 
-# ===== WITHDRAW =====
+# ===== WITHDRAW (ĐÃ SỬA) =====
 async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
 
-    if not ctx.args:
-        await update.message.reply_text("❌ Dùng: /rut mb stk ctk 30000")
+    if len(ctx.args) < 4:
+        await update.message.reply_text("❌ Dùng: /rut bank stk ten 30000")
         return
 
     try:
-        amount = int(ctx.args[0])
+        bank = ctx.args[0]
+        stk = ctx.args[1]
+        name = ctx.args[2]
+        amount = int(ctx.args[3])
     except:
         await update.message.reply_text("❌ Sai định dạng")
         return
@@ -181,9 +183,18 @@ async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Không đủ tiền")
         return
 
+    # lưu info user
+    cursor.execute("UPDATE users SET bank=?, stk=?, name=? WHERE user_id=?", (bank, stk, name, uid))
+    conn.commit()
+
     await ctx.bot.send_message(
         ADMIN_ID,
-        f"💸 Rút tiền\nUser: {uid}\nSố tiền: {amount}\n/reply {uid}"
+        f"""💸 YÊU CẦU RÚT TIỀN
+User: {uid}
+Bank: {bank}
+STK: {stk}
+Tên: {name}
+Số tiền: {amount}"""
     )
 
     await update.message.reply_text("✅ Đã gửi yêu cầu")
