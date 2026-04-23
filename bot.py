@@ -7,11 +7,18 @@ import os
 # ===== CONFIG =====
 TOKEN = os.getenv("TOKEN")
 ADMIN_ID = 8619503816
-GROUP_ID = -1003663678808
-GROUP_LINK = "https://t.me/thanhall"
-BOT_USERNAME = "loclastk2026bot"
-GROUP_LINK = "https://t.me/baonatnhacainhe"
 
+GROUP_IDS = [
+    -1003663678808,
+    -100xxxxxxxxx  # 👉 thay ID group thứ 2
+]
+
+GROUP_LINKS = [
+    "https://t.me/thanhall",
+    "https://t.me/baonatnhacainhe"
+]
+
+BOT_USERNAME = "loclastk2026bot"
 MIN_WITHDRAW = 30000
 
 # ===== DB =====
@@ -71,15 +78,26 @@ def get_balance(uid):
 
 # ===== JOIN CHECK =====
 async def joined(uid, bot):
-    try:
-        m = await bot.get_chat_member(GROUP_ID, uid)
-        return m.status in ["member", "administrator", "creator"]
-    except:
-        return False
+    for gid in GROUP_IDS:
+        try:
+            m = await bot.get_chat_member(gid, uid)
+            if m.status in ["member", "administrator", "creator"]:
+                return True
+        except:
+            continue
+    return False
 
 async def force_join(update):
-    kb = InlineKeyboardMarkup([[InlineKeyboardButton("📢 Tham gia", url=GROUP_LINK)]])
-    await update.message.reply_text("❌ Bạn cần tham gia nhóm!", reply_markup=kb)
+    buttons = [
+        [InlineKeyboardButton(f"📢 Nhóm {i+1}", url=link)]
+        for i, link in enumerate(GROUP_LINKS)
+    ]
+    kb = InlineKeyboardMarkup(buttons)
+
+    await update.message.reply_text(
+        "❌ Bạn cần tham gia ít nhất 1 nhóm!",
+        reply_markup=kb
+    )
 
 # ===== START =====
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -159,7 +177,7 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         del support_mode[uid]
         await update.message.reply_text("✅ Đã gửi")
 
-# ===== WITHDRAW (ĐÃ SỬA) =====
+# ===== WITHDRAW =====
 async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
 
@@ -184,7 +202,6 @@ async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Không đủ tiền")
         return
 
-    # lưu info user
     cursor.execute("UPDATE users SET bank=?, stk=?, name=? WHERE user_id=?", (bank, stk, name, uid))
     conn.commit()
 
