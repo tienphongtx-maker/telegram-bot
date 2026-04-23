@@ -121,7 +121,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                 row = cursor.fetchone()
 
                 if row and row[0] == 0:
-                    add_money(ref, 15000, "ref")
+                    add_money(ref, 2000, "ref")
                     cursor.execute("UPDATE users SET refs=refs+1 WHERE user_id=?", (ref,))
                     cursor.execute("UPDATE users SET refed=1 WHERE user_id=?", (uid,))
                     conn.commit()
