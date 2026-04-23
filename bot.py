@@ -10,7 +10,7 @@ ADMIN_ID = 8619503816
 
 GROUP_IDS = [
     -1003663678808,
-    -100xxxxxxxxx  # 👉 thay ID group thứ 2
+    -1003663678808  # 👉 thay ID group thứ 2
 ]
 
 GROUP_LINKS = [
