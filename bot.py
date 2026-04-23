@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters, CallbackQueryHandler
 import sqlite3
 from datetime import datetime
 import os
@@ -9,8 +9,15 @@ import asyncio
 TOKEN = os.getenv("TOKEN")
 ADMIN_ID = 8619503816
 
-GROUP_IDS = [-1003663678808]
-GROUP_LINKS = ["https://t.me/thanhall"]
+GROUP_IDS = [
+    -1003663678808,
+    -1001234567890
+]
+
+GROUP_LINKS = [
+    "https://t.me/thanhall",
+    "https://t.me/baonatnhacainhe"
+]
 
 BOT_USERNAME = "loclastk2026bot"
 MIN_WITHDRAW = 12000
@@ -34,6 +41,21 @@ CREATE TABLE IF NOT EXISTS users (
 
 cursor.execute("CREATE TABLE IF NOT EXISTS history (user_id INTEGER, amount INTEGER, note TEXT, time TEXT)")
 cursor.execute("CREATE TABLE IF NOT EXISTS banned (user_id INTEGER PRIMARY KEY)")
+
+# 👉 bảng rút tiền
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS withdraw (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    amount INTEGER,
+    bank TEXT,
+    stk TEXT,
+    name TEXT,
+    status TEXT,
+    time TEXT
+)
+""")
+
 conn.commit()
 
 # ===== DB FUNC =====
@@ -60,7 +82,7 @@ def sub_money(uid, amt):
     if bal < amt:
         return False
     cursor.execute("UPDATE users SET balance=balance-? WHERE user_id=?", (amt, uid))
-    cursor.execute("INSERT INTO history VALUES(?,?,?,?)", (uid, -amt, "withdraw", str(datetime.now())))
+    cursor.execute("INSERT INTO history VALUES(?,?,?,?)", (uid, -amt, "withdraw_hold", str(datetime.now())))
     conn.commit()
     return True
 
@@ -81,8 +103,14 @@ async def joined(uid, bot):
     return False
 
 async def force_join(update):
-    buttons = [[InlineKeyboardButton(f"📢 Nhóm {i+1}", url=link)] for i, link in enumerate(GROUP_LINKS)]
-    await update.message.reply_text("❌ Tham gia nhóm để dùng bot!", reply_markup=InlineKeyboardMarkup(buttons))
+    buttons = [
+        [InlineKeyboardButton(f"📢 Nhóm {i+1}", url=link)]
+        for i, link in enumerate(GROUP_LINKS)
+    ]
+    await update.message.reply_text(
+        "❌ Bạn cần tham gia ít nhất 1 nhóm để dùng bot!",
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
 
 # ===== START =====
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -94,13 +122,13 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     get_user(uid)
 
-    # REF
     if ctx.args:
         try:
             ref = int(ctx.args[0])
             if ref != uid:
                 cursor.execute("SELECT refed FROM users WHERE user_id=?", (uid,))
-                if cursor.fetchone()[0] == 0:
+                row = cursor.fetchone()
+                if row and row[0] == 0:
                     add_money(ref, 2000, "ref")
                     cursor.execute("UPDATE users SET refs=refs+1 WHERE user_id=?", (ref,))
                     cursor.execute("UPDATE users SET refed=1 WHERE user_id=?", (uid,))
@@ -121,7 +149,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("🤖 Bot đã sẵn sàng", reply_markup=menu)
 
-# ===== CHECKIN =====
+# ===== HANDLE =====
 async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     txt = update.message.text
@@ -140,7 +168,8 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     elif txt == "🎁 Checkin":
         today = str(datetime.now().date())
         cursor.execute("SELECT last_checkin FROM users WHERE user_id=?", (uid,))
-        last = cursor.fetchone()[0]
+        row = cursor.fetchone()
+        last = row[0] if row else None
 
         if last == today:
             await update.message.reply_text("❌ Hôm nay nhận rồi")
@@ -149,7 +178,6 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         add_money(uid, 1000, "checkin")
         cursor.execute("UPDATE users SET last_checkin=? WHERE user_id=?", (today, uid))
         conn.commit()
-
         await update.message.reply_text("🎉 +1000đ")
 
     elif txt == "📮 Mời bạn":
@@ -167,80 +195,97 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     elif txt == "📞 Hỗ trợ":
         await update.message.reply_text("@RoGarden")
 
-# ===== BROADCAST =====
-async def all_user(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    msg = " ".join(ctx.args)
-    cursor.execute("SELECT user_id FROM users")
-
-    for u in cursor.fetchall():
-        try:
-            await ctx.bot.send_message(u[0], f"📢 {msg}")
-            await asyncio.sleep(0.05)
-        except:
-            pass
-
-# ===== STATS =====
-async def stats(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    cursor.execute("SELECT COUNT(*) FROM users")
-    u = cursor.fetchone()[0]
-
-    cursor.execute("SELECT SUM(balance) FROM users")
-    m = cursor.fetchone()[0] or 0
-
-    await update.message.reply_text(f"User: {u}\nMoney: {m}")
-
-# ===== BAN =====
-async def ban(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-    cursor.execute("INSERT OR IGNORE INTO banned VALUES(?)", (int(ctx.args[0]),))
-    conn.commit()
-    await update.message.reply_text("Đã ban")
-
-async def unban(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-    cursor.execute("DELETE FROM banned WHERE user_id=?", (int(ctx.args[0]),))
-    conn.commit()
-    await update.message.reply_text("Đã unban")
-
-# ===== RÚT =====
+# ===== RÚT TIỀN PRO =====
 async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
 
     try:
-        amount = int(ctx.args[3])
+        bank, stk, name, amount = ctx.args[0], ctx.args[1], ctx.args[2], int(ctx.args[3])
     except:
-        await update.message.reply_text("Sai lệnh")
+        await update.message.reply_text("❌ Dùng: /rut bank stk ten 12000")
         return
 
     if amount < MIN_WITHDRAW:
-        await update.message.reply_text("Min 12k")
+        await update.message.reply_text(f"❌ Tối thiểu {MIN_WITHDRAW}")
         return
 
-    if not sub_money(uid, amount):
-        await update.message.reply_text("Không đủ tiền")
+    if get_balance(uid) < amount:
+        await update.message.reply_text("❌ Không đủ tiền")
         return
 
-    await ctx.bot.send_message(ADMIN_ID, f"Rút {amount} từ {uid}")
-    await update.message.reply_text("Đã gửi yêu cầu")
+    sub_money(uid, amount)
+
+    cursor.execute("""
+    INSERT INTO withdraw(user_id, amount, bank, stk, name, status, time)
+    VALUES(?,?,?,?,?,?,?)
+    """, (uid, amount, bank, stk, name, "pending", str(datetime.now())))
+    wid = cursor.lastrowid
+    conn.commit()
+
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✅ Duyệt", callback_data=f"ok_{wid}"),
+            InlineKeyboardButton("❌ Từ chối", callback_data=f"no_{wid}")
+        ]
+    ])
+
+    await ctx.bot.send_message(ADMIN_ID, f"RÚT TIỀN\nID:{uid}\n💰{amount}\n🏦{bank}\nSTK:{stk}\n👤{name}", reply_markup=keyboard)
+    await update.message.reply_text("⏳ Đang chờ duyệt")
+
+# ===== XỬ LÝ NÚT =====
+async def handle_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.from_user.id != ADMIN_ID:
+        return
+
+    action, wid = query.data.split("_")
+    wid = int(wid)
+
+    cursor.execute("SELECT user_id, amount, status FROM withdraw WHERE id=?", (wid,))
+    row = cursor.fetchone()
+
+    if not row:
+        await query.edit_message_text("❌ Không tồn tại")
+        return
+
+    uid, amount, status = row
+
+    if status != "pending":
+        await query.edit_message_text("⚠️ Đã xử lý")
+        return
+
+    if action == "ok":
+        cursor.execute("UPDATE withdraw SET status='done' WHERE id=?", (wid,))
+        conn.commit()
+        await ctx.bot.send_message(uid, f"✅ Rút {amount} thành công")
+        await query.edit_message_text("✅ Đã duyệt")
+
+    else:
+        add_money(uid, amount, "refund")
+        cursor.execute("UPDATE withdraw SET status='reject' WHERE id=?", (wid,))
+        conn.commit()
+        await ctx.bot.send_message(uid, f"❌ Rút {amount} bị từ chối")
+        await query.edit_message_text("❌ Đã từ chối")
+
+# ===== ADMIN =====
+async def stats(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+    cursor.execute("SELECT COUNT(*) FROM users")
+    u = cursor.fetchone()[0]
+    await update.message.reply_text(f"User: {u}")
 
 # ===== RUN =====
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("rut", rut))
-app.add_handler(CommandHandler("all", all_user))
 app.add_handler(CommandHandler("stats", stats))
-app.add_handler(CommandHandler("ban", ban))
-app.add_handler(CommandHandler("unban", unban))
+
+app.add_handler(CallbackQueryHandler(handle_withdraw))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
-print("BOT PRO RUNNING...")
+print("BOT FULL PRO RUNNING...")
 app.run_polling()
