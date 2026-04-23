@@ -140,7 +140,7 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"https://t.me/{BOT_USERNAME}?start={uid}")
 
     elif txt == "🛒 Rút tiền":
-        await update.message.reply_text("Dùng: /rut 30000")
+        await update.message.reply_text("Dùng: /rut  30000")
 
     elif txt == "📜 Lịch sử":
         cursor.execute("SELECT * FROM history WHERE user_id=? ORDER BY rowid DESC LIMIT 5", (uid,))
@@ -164,7 +164,7 @@ async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
 
     if not ctx.args:
-        await update.message.reply_text("❌ Dùng: /rut 30000")
+        await update.message.reply_text("❌ Dùng: /rut mb stk ctk 30000")
         return
 
     try:
