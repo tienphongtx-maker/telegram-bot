@@ -19,7 +19,7 @@ GROUP_LINKS = [
 ]
 
 BOT_USERNAME = "loclastk2026bot"
-MIN_WITHDRAW = 30000
+MIN_WITHDRAW = 12000
 
 # ===== DB =====
 conn = sqlite3.connect("bot.db", check_same_thread=False)
@@ -158,7 +158,7 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"https://t.me/{BOT_USERNAME}?start={uid}")
 
     elif txt == "🛒 Rút tiền":
-        await update.message.reply_text("Dùng: /rut bank stk ten 30000")
+        await update.message.reply_text("Dùng: /rut bank stk ten 12000")
 
     elif txt == "📜 Lịch sử":
         cursor.execute("SELECT * FROM history WHERE user_id=? ORDER BY rowid DESC LIMIT 5", (uid,))
@@ -182,7 +182,7 @@ async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
 
     if len(ctx.args) < 4:
-        await update.message.reply_text("❌ Dùng: /rut bank stk ten 30000")
+        await update.message.reply_text("❌ Dùng: /rut bank stk ten 12000")
         return
 
     try:
@@ -195,7 +195,7 @@ async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
 
     if amount < MIN_WITHDRAW:
-        await update.message.reply_text("❌ Tối thiểu 30k")
+        await update.message.reply_text("❌ Tối thiểu 12k")
         return
 
     if not sub_money(uid, amount):
