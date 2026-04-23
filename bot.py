@@ -226,5 +226,11 @@ app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("add", add))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
-print("BOT RUNNING...")
-app.run_polling()
+import asyncio
+
+async def main():
+    print("BOT RUNNING...")
+    await app.run_polling()
+
+if __name__ == "__main__":
+    asyncio.run(main())
