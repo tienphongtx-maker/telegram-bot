@@ -358,7 +358,7 @@ app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("rut", rut))
 app.add_handler(CommandHandler("stats", stats))
-
+app.add_handler(CommandHandler("all", all_user))
 # 👉 ADMIN
 app.add_handler(CommandHandler("add", add))
 app.add_handler(CommandHandler("sub", sub))
