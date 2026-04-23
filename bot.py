@@ -10,6 +10,7 @@ ADMIN_ID = 8619503816
 GROUP_ID = -1003663678808
 GROUP_LINK = "https://t.me/thanhall"
 BOT_USERNAME = "loclastk2026bot"
+GROUP_LINK = "https://t.me/baonatnhacainhe"
 
 MIN_WITHDRAW = 30000
 
