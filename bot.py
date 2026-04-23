@@ -165,7 +165,7 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(msg or "Không có")
 
     elif txt == "📞 Hỗ trợ":
-        await update.message.reply_text("Liên hệ admin")
+        await update.message.reply_text("@RoGarden")
 
 # ===== BROADCAST =====
 async def all_user(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
