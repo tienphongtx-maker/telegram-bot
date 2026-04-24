@@ -21,10 +21,10 @@ MIN_WITHDRAW = 12000
 conn = sqlite3.connect("bot.db", check_same_thread=False)
 
 def query(q, args=()):
-cur = conn.cursor()
-cur.execute(q, args)
-conn.commit()
-return cur
+    cur = conn.cursor()
+    cur.execute(q, args)
+    conn.commit()
+    return cur
 
 query("""
 CREATE TABLE IF NOT EXISTS users (
