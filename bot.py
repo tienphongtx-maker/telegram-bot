@@ -169,8 +169,7 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return await update.message.reply_text("🎉 +5000đ")
 
     elif txt == "📮 Mời bạn":
-        return await update.message.reply_text(
-    f" 1f= 4k Min 20k    
+        return await update.message.reply_text(   
     f"📩 Mời bạn bè để nhận thưởng!\n"
     f"👉 Nhấn vào link dưới đây:\n"
     f"https://t.me/{BOT_USERNAME}?start={uid}"
