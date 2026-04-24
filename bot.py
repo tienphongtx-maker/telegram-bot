@@ -104,7 +104,7 @@ async def joined(uid, bot):
 async def force_join(update):
     buttons = [[InlineKeyboardButton(f"📢 Nhóm {i+1}", url=link)] for i, link in enumerate(GROUP_LINKS)]
     await update.message.reply_text(
-        "❌ Bạn cần tham gia ít nhất 1 nhóm để dùng bot!",
+        "❌ Bạn cần tham gia nhóm để sử dụng!",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 
