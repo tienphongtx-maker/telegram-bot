@@ -20,7 +20,7 @@ GROUP_LINKS = [
 ]
 
 BOT_USERNAME = "loclastk2026bot"
-MIN_WITHDRAW = 12000
+MIN_WITHDRAW = 20000
 
 # ===== DB =====
 conn = sqlite3.connect("bot.db", check_same_thread=False)
@@ -123,7 +123,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             if ref != uid:
                 cursor.execute("SELECT refed FROM users WHERE user_id=?", (uid,))
                 if cursor.fetchone()[0] == 0:
-                    add_money(ref, 2000, "ref")
+                    add_money(ref, 4000, "ref")
                     cursor.execute("UPDATE users SET refs=refs+1 WHERE user_id=?", (ref,))
                     cursor.execute("UPDATE users SET refed=1 WHERE user_id=?", (uid,))
                     conn.commit()
@@ -163,13 +163,14 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         if last == today:
             return await update.message.reply_text("❌ Hôm nay nhận rồi")
 
-        add_money(uid, 1000, "checkin")
+        add_money(uid, 4000, "checkin")
         cursor.execute("UPDATE users SET last_checkin=? WHERE user_id=?", (today, uid))
         conn.commit()
-        return await update.message.reply_text("🎉 +1000đ")
+        return await update.message.reply_text("🎉 +4000đ")
 
     elif txt == "📮 Mời bạn":
         return await update.message.reply_text(
+     " 1f= 4k Min 20k    
     f"📩 Mời bạn bè để nhận thưởng!\n"
     f"👉 Nhấn vào link dưới đây:\n"
     f"https://t.me/{BOT_USERNAME}?start={uid}"
