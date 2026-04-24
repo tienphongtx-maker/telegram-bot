@@ -56,7 +56,8 @@ def add_money(uid, amt, note):
 
 def sub_money(uid, amt):
     get_user(uid)
-    bal = query("SELECT balance FROM users WHERE user_id=?", (uid,)).fetchone()[0]
+    row = query("SELECT balance FROM users WHERE user_id=?", (uid,)).fetchone()
+bal = row[0] if row else 0
     if bal < amt:
         return False
     query("UPDATE users SET balance=balance-? WHERE user_id=?", (amt, uid))
@@ -65,7 +66,8 @@ def sub_money(uid, amt):
 
 def get_balance(uid):
     get_user(uid)
-    return query("SELECT balance FROM users WHERE user_id=?", (uid,)).fetchone()[0]
+    row = query("SELECT balance FROM users WHERE user_id=?", (uid,)).fetchone()
+return row[0] if row else 0
 
 # ===== JOIN =====
 async def joined(uid, bot):
@@ -135,8 +137,10 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"{get_balance(uid)} VND")
 
     elif txt == "🎁 Checkin":
+        get_user(uid)
         today = str(datetime.now().date())
-        last = query("SELECT last_checkin FROM users WHERE user_id=?", (uid,)).fetchone()[0]
+        row = query("SELECT last_checkin FROM users WHERE user_id=?", (uid,)).fetchone()
+last = row[0] if row else None
 
         if last == today:
             await update.message.reply_text("❌ Hôm nay nhận rồi")
