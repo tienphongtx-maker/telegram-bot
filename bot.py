@@ -171,7 +171,7 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     elif txt == "📮 Mời bạn":
         return await update.message.reply_text(
             f"🎁 KIẾM TIỀN CÙNG BẠN BÈ\n"
-            f"1F=2K-MIN=20K\n"
+            f"1F=4K-MIN=20K\n"
             f"📩 Mời bạn bè để nhận thưởng\n"
             f"💸 +4,000đ mỗi lượt\n"
             f"💰 Min rút tiền: 20,000đ\n\n"
