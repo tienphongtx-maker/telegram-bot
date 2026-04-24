@@ -163,14 +163,14 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         if last == today:
             return await update.message.reply_text("❌ Hôm nay nhận rồi")
 
-        add_money(uid, 4000, "checkin")
+        add_money(uid, 5000, "checkin")
         cursor.execute("UPDATE users SET last_checkin=? WHERE user_id=?", (today, uid))
         conn.commit()
-        return await update.message.reply_text("🎉 +4000đ")
+        return await update.message.reply_text("🎉 +5000đ")
 
     elif txt == "📮 Mời bạn":
         return await update.message.reply_text(
-     " 1f= 4k Min 20k    
+    f" 1f= 4k Min 20k    
     f"📩 Mời bạn bè để nhận thưởng!\n"
     f"👉 Nhấn vào link dưới đây:\n"
     f"https://t.me/{BOT_USERNAME}?start={uid}"
