@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import os
 import asyncio
 
-===== CONFIG =====
+# ===== CONFIG =====
 
 TOKEN = os.getenv("TOKEN")
 ADMIN_ID = 8619503816
