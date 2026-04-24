@@ -134,11 +134,11 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return await force_join(update)
 
     menu = ReplyKeyboardMarkup([
-        ["💰 Số dư"],
-        ["🎁 Checkin", "📮 Mời bạn"],
-        ["🛒 Rút tiền", "📜 Lịch sử"],
-        ["📞 Hỗ trợ"]
-    ], resize_keyboard=True)
+    ["💰 Số dư"],
+    ["🎁 Checkin", "📮 Mời bạn"],
+    ["🎮 Game", "📜 Lịch sử"],
+    ["🛒 Rút tiền", "📞 Hỗ trợ"]
+], resize_keyboard=True)
 
     await update.message.reply_text("🤖 Bot đã sẵn sàng", reply_markup=menu)
 
@@ -167,7 +167,13 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         cursor.execute("UPDATE users SET last_checkin=? WHERE user_id=?", (today, uid))
         conn.commit()
         return await update.message.reply_text("🎉 +5000đ")
-
+elif txt == "🎮 Game":
+    return await update.message.reply_text(
+        "🎮 Chọn game:\n"
+        "🎲 /taixiu 10000\n"
+        "🎯 /doanso 5000\n"
+        "🎰 /slot 10000"
+    )
     elif txt == "📮 Mời bạn":
         return await update.message.reply_text(
             f"🎁 KIẾM TIỀN CÙNG BẠN BÈ\n"
