@@ -16,7 +16,7 @@ GROUP_LINKS = ["https://t.me/thanhall"]
 BOT_USERNAME = "loclastk2026bot"
 MIN_WITHDRAW = 12000
 
-===== DB =====
+# ===== DB =====
 
 conn = sqlite3.connect("bot.db", check_same_thread=False)
 
@@ -70,7 +70,7 @@ def get_balance(uid):
 get_user(uid)
 return query("SELECT balance FROM users WHERE user_id=?", (uid,)).fetchone()[0]
 
-===== JOIN =====
+# ===== JOIN =====
 
 async def joined(uid, bot):
 for gid in GROUP_IDS:
@@ -86,7 +86,7 @@ async def force_join(update):
 buttons = [[InlineKeyboardButton(f"📢 Nhóm {i+1}", url=link)] for i, link in enumerate(GROUP_LINKS)]
 await update.message.reply_text("❌ Tham gia nhóm để dùng bot!", reply_markup=InlineKeyboardMarkup(buttons))
 
-===== START =====
+# ===== START =====
 
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 uid = update.effective_user.id
@@ -124,7 +124,7 @@ menu = ReplyKeyboardMarkup([
 
 await update.message.reply_text("🤖 Bot đã sẵn sàng", reply_markup=menu)
 
-===== HANDLE =====
+# ===== HANDLE =====
 
 async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 uid = update.effective_user.id
@@ -167,7 +167,7 @@ elif txt == "📜 Lịch sử":
 elif txt == "📞 Hỗ trợ":  
     await update.message.reply_text("@RoGarden")
 
-===== RÚT =====
+# ===== RÚT =====
 
 async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 uid = update.effective_user.id
@@ -218,7 +218,7 @@ await ctx.bot.send_message(
 )
 await update.message.reply_text("Đã gửi yêu cầu")
 
-===== ADMIN =====
+# ===== ADMIN =====
 
 async def add(update, ctx):
 if update.effective_user.id != ADMIN_ID: return
@@ -260,7 +260,7 @@ for u in users:
     except:  
         pass
 
-===== RUN =====
+# ===== RUN =====
 
 app = ApplicationBuilder().token(TOKEN).build()
 
