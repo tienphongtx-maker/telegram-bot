@@ -275,7 +275,22 @@ async def ban(update, ctx):
         cursor.execute("INSERT INTO banned VALUES(?)", (int(ctx.args[0]),))
         conn.commit()
         await update.message.reply_text("BANNED")
+async def reply_user(update, ctx):
+    if update.effective_user.id != ADMIN_ID:
+        return
 
+    try:
+        uid = int(ctx.args[0])
+        msg = " ".join(ctx.args[1:])
+    except:
+        return await update.message.reply_text("Dùng: /reply user_id nội dung")
+
+    try:
+        await ctx.bot.send_message(uid, msg)
+        await update.message.reply_text("✅ Đã gửi")
+    except Exception as e:
+        print(e)
+        await update.message.reply_text(f"❌ Lỗi: {e}")
 async def unban(update, ctx):
     if update.effective_user.id == ADMIN_ID:
         cursor.execute("DELETE FROM banned WHERE user_id=?", (int(ctx.args[0]),))
@@ -329,7 +344,7 @@ app.add_handler(CommandHandler("addall", addall))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
 app.add_handler(CommandHandler("pending", pending))
-
+app.add_handler(CommandHandler("reply", reply_user))
 app.add_handler(CallbackQueryHandler(handle_withdraw))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
