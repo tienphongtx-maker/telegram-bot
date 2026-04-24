@@ -110,7 +110,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
 
     menu = ReplyKeyboardMarkup([
-        ["💰 Số dư"],
+        ["💰 Số dư"],  "🍉Tài Xỉu"]
         ["🎁 Checkin", "📮 Mời bạn"],
         ["🛒 Rút tiền", "📜 Lịch sử"],
         ["📞 Hỗ trợ"]
@@ -165,7 +165,61 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(msg or "Không có")
 
     elif txt == "📞 Hỗ trợ":
-        await update.message.reply_text("@RoGarden")
+    await update.message.reply_text("@RoGarden")
+
+elif txt == "🎲 Tài xỉu":
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Tài 1K", callback_data="tx_tai_1000"),
+            InlineKeyboardButton("Xỉu 1K", callback_data="tx_xiu_1000"),
+        ],
+        [
+            InlineKeyboardButton("Tài 5K", callback_data="tx_tai_5000"),
+            InlineKeyboardButton("Xỉu 5K", callback_data="tx_xiu_5000"),
+        ],
+        [
+            InlineKeyboardButton("Tài 10K", callback_data="tx_tai_10000"),
+            InlineKeyboardButton("Xỉu 10K", callback_data="tx_xiu_10000"),
+        ]
+    ])
+await update.message.reply_text("🎲 Chọn cửa & tiền cược:", reply_markup=keyboard)
+
+# ===== TAIXIU ===== 👇 DÁN Ở ĐÂY
+import random
+
+async def taixiu_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    query_btn = update.callback_query
+    await query_btn.answer()
+
+    data = query_btn.data
+
+    if data.startswith("tx_"):
+        uid = query_btn.from_user.id
+
+        _, choice, amount = data.split("_")
+        amount = int(amount)
+
+        if get_balance(uid) < amount:
+            await query_btn.edit_message_text("❌ Không đủ tiền")
+            return
+
+        sub_money(uid, amount)
+
+        dice = [random.randint(1,6) for _ in range(3)]
+        total = sum(dice)
+
+        result = "tai" if total >= 11 else "xiu"
+
+        if choice == result:
+            add_money(uid, amount * 2, "taixiu_win")
+            msg = f"🎲 {dice} = {total}\n👉 {'Tài' if result=='tai' else 'Xỉu'}\n\n✅ Bạn thắng +{amount}"
+        else:
+            msg = f"🎲 {dice} = {total}\n👉 {'Tài' if result=='tai' else 'Xỉu'}\n\n❌ Bạn thua -{amount}"
+
+        await query_btn.edit_message_text(msg)
+
+# ===== RÚT =====
+async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 # ===== RÚT =====
 async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -397,6 +451,7 @@ app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
 app.add_handler(CommandHandler("stats", stats))
 app.add_handler(CommandHandler("all", all_user))
+app.add_handler(CallbackQueryHandler(taixiu_callback, pattern="^tx_"))
 
 app.add_handler(CommandHandler("his", history_pro))
 app.add_handler(CommandHandler("hisall", history_all_admin))
