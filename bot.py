@@ -169,12 +169,16 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return await update.message.reply_text("🎉 +5000đ")
 
     elif txt == "📮 Mời bạn":
-        return await update.message.reply_text(   
-    f"📩 Mời bạn bè để nhận thưởng!\n"
-    f"👉 Nhấn vào link dưới đây:\n"
-    f"https://t.me/{BOT_USERNAME}?start={uid}"
-        )
-
+    return await update.message.reply_text(
+f"🎁 KIẾM TIỀN CÙNG BẠN BÈ\n"
+f"━━━━━━━━━━━━━━━\n"
+f"📩 Mời bạn bè để nhận thưởng\n"
+f"💸 Mỗi lượt mời: +4,000đ\n"
+f"💰 Min rút tiền: 20,000đ\n"
+f"\n"
+f"👉 Link của bạn:\n"
+f"https://t.me/{BOT_USERNAME}?start={uid}"
+    )
     elif txt == "🛒 Rút tiền":
         return await update.message.reply_text("Dùng: /rut bank stk ten 12000")
 
