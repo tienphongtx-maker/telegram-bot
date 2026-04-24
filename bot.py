@@ -176,18 +176,12 @@ async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     elif txt == "🎲 Tài xỉu":
         keyboard = InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("Tài 1K", callback_data="tx_tai_1000"),
-                InlineKeyboardButton("Xỉu 1K", callback_data="tx_xiu_1000"),
-            ],
-            [
-                InlineKeyboardButton("Tài 5K", callback_data="tx_tai_5000"),
-                InlineKeyboardButton("Xỉu 5K", callback_data="tx_xiu_5000"),
-            ],
-            [
-                InlineKeyboardButton("Tài 10K", callback_data="tx_tai_10000"),
-                InlineKeyboardButton("Xỉu 10K", callback_data="tx_xiu_10000"),
-            ]
+            [InlineKeyboardButton("Tài 1K", callback_data="tx_tai_1000"),
+             InlineKeyboardButton("Xỉu 1K", callback_data="tx_xiu_1000")],
+            [InlineKeyboardButton("Tài 5K", callback_data="tx_tai_5000"),
+             InlineKeyboardButton("Xỉu 5K", callback_data="tx_xiu_5000")],
+            [InlineKeyboardButton("Tài 10K", callback_data="tx_tai_10000"),
+             InlineKeyboardButton("Xỉu 10K", callback_data="tx_xiu_10000")]
         ])
         await update.message.reply_text("🎲 Chọn cửa & tiền cược:", reply_markup=keyboard)
 
@@ -197,109 +191,74 @@ async def taixiu_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await query_btn.answer()
 
     data = query_btn.data
+    uid = query_btn.from_user.id
 
-    if data.startswith("tx_"):
-        uid = query_btn.from_user.id
-
-        _, choice, amount = data.split("_")
-        amount = int(amount)
-
-        if get_balance(uid) < amount:
-            await query_btn.edit_message_text("❌ Không đủ tiền")
-            return
-
-        sub_money(uid, amount)
-
-        dice = [random.randint(1,6) for _ in range(3)]
-        total = sum(dice)
-
-        result = "tai" if total >= 11 else "xiu"
-
-        if choice == result:
-            add_money(uid, amount * 2, "taixiu_win")
-            msg = f"🎲 {dice} = {total}\n👉 {'Tài' if result=='tai' else 'Xỉu'}\n\n✅ Bạn thắng +{amount}"
-        else:
-            msg = f"🎲 {dice} = {total}\n👉 {'Tài' if result=='tai' else 'Xỉu'}\n\n❌ Bạn thua -{amount}"
-
-        await query_btn.edit_message_text(msg)
-
-# ===== RÚT =====
-async def rut(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    uid = update.effective_user.id
-
-    if len(ctx.args) < 4:
-        await update.message.reply_text("Sai cú pháp")
-        return
-
-    bank, stk, name = ctx.args[0], ctx.args[1], ctx.args[2]
-
-    try:
-        amount = int(ctx.args[3])
-    except:
-        await update.message.reply_text("Sai số tiền")
-        return
-
-    if amount < MIN_WITHDRAW:
-        await update.message.reply_text("Min 12k")
-        return
-
-    now = datetime.now()
-    last = query("SELECT last_withdraw FROM users WHERE user_id=?", (uid,)).fetchone()[0]
-
-    if last:
-        if (now - datetime.fromisoformat(last)) < timedelta(seconds=60):
-            await update.message.reply_text("Đợi 60s")
-            return
-
-    if not sub_money(uid, amount):
-        await update.message.reply_text("Không đủ tiền")
-        return
-
-    query("UPDATE users SET bank=?, stk=?, name=?, last_withdraw=? WHERE user_id=?",
-          (bank, stk, name, now.isoformat(), uid))
-
-    keyboard = InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton("✅ Duyệt", callback_data=f"ok_{uid}_{amount}"),
-            InlineKeyboardButton("❌ Từ chối", callback_data=f"no_{uid}_{amount}")
-        ]
-    ])
-
-    await ctx.bot.send_message(
-        ADMIN_ID,
-        f"💸 Yêu cầu rút tiền\n\n👤 ID: {uid}\n💰 {amount}\n🏦 {bank} | {stk} | {name}",
-        reply_markup=keyboard
-    )
-
-    await update.message.reply_text("Đã gửi yêu cầu")
-
-# ===== CALLBACK RÚT =====
-async def handle_withdraw_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    query_btn = update.callback_query
-    await query_btn.answer()
-
-    if query_btn.from_user.id != ADMIN_ID:
-        return
-
-    action, uid, amount = query_btn.data.split("_")
-    uid = int(uid)
+    _, choice, amount = data.split("_")
     amount = int(amount)
 
-    if action == "ok":
-        await ctx.bot.send_message(uid, f"✅ Rút {amount} thành công")
-        await query_btn.edit_message_text("✅ ĐÃ DUYỆT")
+    if get_balance(uid) < amount:
+        await query_btn.edit_message_text("❌ Không đủ tiền")
+        return
 
-    elif action == "no":
-        add_money(uid, amount, "refund")
-        await ctx.bot.send_message(uid, f"❌ Bị từ chối")
-        await query_btn.edit_message_text("❌ ĐÃ TỪ CHỐI")
+    sub_money(uid, amount)
+
+    dice = [random.randint(1,6) for _ in range(3)]
+    total = sum(dice)
+    result = "tai" if total >= 11 else "xiu"
+
+    if choice == result:
+        add_money(uid, amount * 2, "taixiu_win")
+        msg = f"🎲 {dice} = {total}\n👉 {'Tài' if result=='tai' else 'Xỉu'}\n\n✅ Thắng +{amount}"
+    else:
+        msg = f"🎲 {dice} = {total}\n👉 {'Tài' if result=='tai' else 'Xỉu'}\n\n❌ Thua -{amount}"
+
+    await query_btn.edit_message_text(msg)
+
+# ===== ADMIN (ĐÃ CHÈN) =====
+async def add(update, ctx):
+    if update.effective_user.id != ADMIN_ID: return
+    uid, amt = int(ctx.args[0]), int(ctx.args[1])
+    add_money(uid, amt, "admin_add")
+    await update.message.reply_text("Đã cộng")
+
+async def sub(update, ctx):
+    if update.effective_user.id != ADMIN_ID: return
+    uid, amt = int(ctx.args[0]), int(ctx.args[1])
+    sub_money(uid, amt)
+    await update.message.reply_text("Đã trừ")
+
+async def ban(update, ctx):
+    if update.effective_user.id != ADMIN_ID: return
+    query("INSERT OR IGNORE INTO banned VALUES(?)", (int(ctx.args[0]),))
+    await update.message.reply_text("Đã ban")
+
+async def unban(update, ctx):
+    if update.effective_user.id != ADMIN_ID: return
+    query("DELETE FROM banned WHERE user_id=?", (int(ctx.args[0]),))
+    await update.message.reply_text("Đã unban")
+
+async def stats(update, ctx):
+    if update.effective_user.id != ADMIN_ID: return
+    u = query("SELECT COUNT(*) FROM users").fetchone()[0]
+    m = query("SELECT SUM(balance) FROM users").fetchone()[0] or 0
+    await update.message.reply_text(f"User: {u}\nMoney: {m}")
+
+async def all_user(update, ctx):
+    if update.effective_user.id != ADMIN_ID: return
+    msg = " ".join(ctx.args)
+    users = query("SELECT user_id FROM users").fetchall()
+    for u in users:
+        try:
+            await ctx.bot.send_message(u[0], f"📢 {msg}")
+            await asyncio.sleep(0.2)
+        except:
+            pass
 
 # ===== RUN =====
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("rut", rut))
-
 app.add_handler(CommandHandler("add", add))
 app.add_handler(CommandHandler("sub", sub))
 app.add_handler(CommandHandler("ban", ban))
@@ -308,7 +267,6 @@ app.add_handler(CommandHandler("stats", stats))
 app.add_handler(CommandHandler("all", all_user))
 
 app.add_handler(CallbackQueryHandler(taixiu_callback, pattern="^tx_"))
-app.add_handler(CallbackQueryHandler(handle_withdraw_action))
 
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
