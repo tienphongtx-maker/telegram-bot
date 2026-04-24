@@ -58,7 +58,7 @@ def sub_money(uid, amt):
     get_user(uid)
     row = query("SELECT balance FROM users WHERE user_id=?", (uid,)).fetchone()
 bal = row[0] if row else 0
-    if bal < amt:
+if bal < amt:
         return False
     query("UPDATE users SET balance=balance-? WHERE user_id=?", (amt, uid))
     query("INSERT INTO history VALUES(?,?,?,?)", (uid, -amt, "withdraw", str(datetime.now())))
